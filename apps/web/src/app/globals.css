@@ -1,0 +1,254 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * HyperDrop Institutional Financial Trust Palette (OKLCH, Tailwind CSS v4)
+ * - 90% deep obsidian/slate neutrals (never pure #000000)
+ * - Semantic color reserved strictly for financial risk:
+ *     Safe    (> 1.50x HF, verified sim, inflows, +APY) -> Emerald (WCAG AA)
+ *     Caution (1.25x–1.50x HF, nearing spend cap)        -> Amber
+ *     Danger  (< 1.25x HF, outflows, Emergency Freeze)   -> Crimson
+ */
+:root,
+.dark {
+  --background: oklch(0.142 0.011 258);
+  --foreground: oklch(0.955 0.006 258);
+
+  --card: oklch(0.178 0.013 258);
+  --card-foreground: oklch(0.955 0.006 258);
+
+  --popover: oklch(0.195 0.014 258);
+  --popover-foreground: oklch(0.955 0.006 258);
+
+  --surface-elevated: oklch(0.212 0.014 258);
+  --surface-inset: oklch(0.156 0.011 258);
+
+  --primary: oklch(0.945 0.008 258);
+  --primary-foreground: oklch(0.152 0.012 258);
+
+  --secondary: oklch(0.228 0.014 258);
+  --secondary-foreground: oklch(0.925 0.008 258);
+
+  --muted: oklch(0.215 0.013 258);
+  --muted-foreground: oklch(0.715 0.013 258);
+
+  --accent: oklch(0.242 0.015 258);
+  --accent-foreground: oklch(0.96 0.006 258);
+
+  --border: oklch(0.305 0.014 258 / 0.6);
+  --input: oklch(0.29 0.014 258 / 0.72);
+  --ring: oklch(0.735 0.145 162);
+
+  /* Semantic Risk Tokens (WCAG 2.2 AA verified on dark obsidian) */
+  --risk-safe: oklch(0.745 0.152 160);
+  --risk-safe-surface: oklch(0.225 0.048 160);
+  --risk-safe-border: oklch(0.46 0.105 160 / 0.55);
+
+  --risk-caution: oklch(0.805 0.148 78);
+  --risk-caution-surface: oklch(0.235 0.048 78);
+  --risk-caution-border: oklch(0.54 0.115 78 / 0.55);
+
+  --risk-danger: oklch(0.665 0.205 24);
+  --risk-danger-solid: oklch(0.525 0.205 24);
+  --risk-danger-solid-hover: oklch(0.575 0.215 24);
+  --risk-danger-surface: oklch(0.225 0.058 24);
+  --risk-danger-border: oklch(0.52 0.155 24 / 0.65);
+
+  --destructive: oklch(0.525 0.205 24);
+  --destructive-foreground: oklch(0.98 0.005 24);
+
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-inset: var(--surface-inset);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-risk-safe: var(--risk-safe);
+  --color-risk-safe-surface: var(--risk-safe-surface);
+  --color-risk-safe-border: var(--risk-safe-border);
+  --color-risk-caution: var(--risk-caution);
+  --color-risk-caution-surface: var(--risk-caution-surface);
+  --color-risk-caution-border: var(--risk-caution-border);
+  --color-risk-danger: var(--risk-danger);
+  --color-risk-danger-solid: var(--risk-danger-solid);
+  --color-risk-danger-solid-hover: var(--risk-danger-solid-hover);
+  --color-risk-danger-surface: var(--risk-danger-surface);
+  --color-risk-danger-border: var(--risk-danger-border);
+
+  --font-serif: "Fraunces", ui-serif, Georgia, Cambria, serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+.tabular-financial {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+@keyframes hd-dash-flow {
+  from {
+    stroke-dashoffset: 48;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hd-wave-drift {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes hd-ring-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.65;
+  }
+  70% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+.hd-svg-flow {
+  animation: hd-dash-flow 2.4s linear infinite;
+}
+
+.hd-svg-wave {
+  animation: hd-wave-drift 9s ease-in-out infinite;
+}
+
+.hd-svg-wave-slow {
+  animation: hd-wave-drift 13s ease-in-out infinite reverse;
+}
+
+.hd-svg-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hd-ring-pulse 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes hd-hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hd-check-draw {
+  from {
+    stroke-dashoffset: 32;
+    opacity: 0.4;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.hd-hero-in {
+  animation: hd-hero-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hd-svg-check {
+  stroke-dasharray: 32;
+  animation: hd-check-draw 800ms 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hd-float-gentle {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.hd-float-slow {
+  animation: hd-float-gentle 5.5s ease-in-out infinite;
+}
+
+.hd-float-delayed {
+  animation: hd-float-gentle 6.5s ease-in-out 1.2s infinite;
+}
+

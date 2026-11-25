@@ -1,0 +1,6 @@
+{
+  "name": "HyperDrop",
+  "description": "Open-source, non-custodial AI DeFi copilot and automated risk-protection agent for Stellar (Blend, DeFindex, Soroswap) enforced by Soroban YieldGuardPolicy.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
