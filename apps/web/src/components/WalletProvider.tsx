@@ -297,7 +297,7 @@ export function WalletConnectionControl() {
         onClick={() => setMenuOpen((prev) => !prev)}
         aria-expanded={menuOpen}
         aria-haspopup="menu"
-        className="gap-2 bg-card"
+        className="min-h-9 h-9 gap-1.5 bg-card px-2.5 sm:min-h-10 sm:gap-2 sm:px-3.5"
       >
         <ShieldCheck
           className={
@@ -307,7 +307,7 @@ export function WalletConnectionControl() {
           }
         />
         <span className="tabular-financial text-xs text-foreground">
-          {truncateAddress(address, 5, 4)}
+          {truncateAddress(address, 4, 4)}
         </span>
         <span className="hidden sm:inline text-xs text-muted-foreground">· Testnet</span>
         <ChevronDown className="size-3.5 text-muted-foreground" />

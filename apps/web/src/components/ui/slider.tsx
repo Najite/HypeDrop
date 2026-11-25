@@ -37,18 +37,18 @@ export function Slider({
     >
       <SliderPrimitive.Track
         data-slot="slider-track"
-        className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-white/20"
+        className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary"
       >
         <SliderPrimitive.Range
           data-slot="slider-range"
-          className="absolute h-full bg-white"
+          className="absolute h-full bg-primary"
         />
       </SliderPrimitive.Track>
       {thumbValues.map((_, index) => (
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}
-          className="block size-5 shrink-0 cursor-grab rounded-full border border-white/40 bg-white shadow-sm transition-transform duration-150 ease-out hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none active:cursor-grabbing"
+          className="block size-5 shrink-0 cursor-grab rounded-full border-2 border-primary bg-card shadow-sm transition-transform duration-150 ease-out hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none active:cursor-grabbing"
         />
       ))}
     </SliderPrimitive.Root>

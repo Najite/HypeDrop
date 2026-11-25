@@ -5,13 +5,17 @@ import { Toaster as Sonner, type ToasterProps } from 'sonner';
 export function Toaster(props: ToasterProps) {
   return (
     <Sonner
-      theme="dark"
       position="bottom-right"
       toastOptions={{
+        style: {
+          background: 'var(--popover)',
+          color: 'var(--popover-foreground)',
+          border: '1px solid var(--border)',
+        },
         classNames: {
           toast:
-            'group rounded-[12px] border border-border bg-popover text-popover-foreground font-sans text-sm shadow-none',
-          title: 'font-medium text-foreground',
+            'group rounded-[14px] font-sans text-sm shadow-lg shadow-slate-950/5 dark:shadow-black/35',
+          title: 'font-semibold text-foreground',
           description: 'text-xs text-muted-foreground',
           actionButton:
             'rounded-[8px] bg-primary text-primary-foreground text-xs font-medium px-3 py-1.5',

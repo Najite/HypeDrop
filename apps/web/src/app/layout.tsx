@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${fraunces.variable} ${plusJakarta.variable} ${ibmPlexMono.variable}`}
+      className={`${fraunces.variable} ${plusJakarta.variable} ${ibmPlexMono.variable}`}
     >
       <body className="bg-background text-foreground font-sans antialiased">
         {children}

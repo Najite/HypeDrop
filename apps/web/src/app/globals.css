@@ -4,62 +4,111 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * HyperDrop Institutional Financial Trust Palette (OKLCH, Tailwind CSS v4)
- * - 90% deep obsidian/slate neutrals (never pure #000000)
- * - Semantic color reserved strictly for financial risk:
+ * HyperDrop Unified Consumer-Fintech & Financial Trust Palette (OKLCH, Tailwind CSS v4)
+ * - Default Light Theme: Sunlit cool alabaster canvas (#F7F8FC), crisp white cards,
+ *   indigo-violet primary actions (#6D4AFF), midnight-navy security accents (#0A0D1E).
+ * - Optional Dark Theme (.dark): Deep obsidian-slate neutrals (never pure #000000).
+ * - Semantic risk color reserved strictly for financial risk:
  *     Safe    (> 1.50x HF, verified sim, inflows, +APY) -> Emerald (WCAG AA)
  *     Caution (1.25x–1.50x HF, nearing spend cap)        -> Amber
  *     Danger  (< 1.25x HF, outflows, Emergency Freeze)   -> Crimson
  */
-:root,
+:root {
+  --background: oklch(0.978 0.006 270);
+  --foreground: oklch(0.185 0.028 265);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.185 0.028 265);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.185 0.028 265);
+
+  --surface-elevated: oklch(0.992 0.004 270);
+  --surface-inset: oklch(0.958 0.011 272);
+
+  --primary: oklch(0.545 0.232 278);
+  --primary-foreground: oklch(0.99 0.004 278);
+
+  --secondary: oklch(0.946 0.015 272);
+  --secondary-foreground: oklch(0.24 0.03 265);
+
+  --muted: oklch(0.952 0.011 270);
+  --muted-foreground: oklch(0.49 0.024 265);
+
+  --accent: oklch(0.942 0.024 276);
+  --accent-foreground: oklch(0.24 0.04 272);
+
+  --border: oklch(0.895 0.015 270);
+  --input: oklch(0.88 0.016 270);
+  --ring: oklch(0.545 0.232 278);
+
+  /* Semantic Risk Tokens (WCAG 2.2 AA verified on light canvas) */
+  --risk-safe: oklch(0.505 0.145 158);
+  --risk-safe-surface: oklch(0.955 0.036 158);
+  --risk-safe-border: oklch(0.82 0.08 158);
+
+  --risk-caution: oklch(0.555 0.152 68);
+  --risk-caution-surface: oklch(0.968 0.042 82);
+  --risk-caution-border: oklch(0.84 0.095 78);
+
+  --risk-danger: oklch(0.545 0.205 22);
+  --risk-danger-solid: oklch(0.545 0.21 22);
+  --risk-danger-solid-hover: oklch(0.495 0.21 22);
+  --risk-danger-surface: oklch(0.96 0.03 22);
+  --risk-danger-border: oklch(0.84 0.09 22);
+
+  --destructive: oklch(0.545 0.21 22);
+  --destructive-foreground: oklch(0.99 0.004 22);
+
+  --radius: 0.875rem;
+}
+
 .dark {
-  --background: oklch(0.142 0.011 258);
-  --foreground: oklch(0.955 0.006 258);
+  --background: oklch(0.142 0.015 265);
+  --foreground: oklch(0.958 0.006 265);
 
-  --card: oklch(0.178 0.013 258);
-  --card-foreground: oklch(0.955 0.006 258);
+  --card: oklch(0.182 0.018 265);
+  --card-foreground: oklch(0.958 0.006 265);
 
-  --popover: oklch(0.195 0.014 258);
-  --popover-foreground: oklch(0.955 0.006 258);
+  --popover: oklch(0.202 0.019 265);
+  --popover-foreground: oklch(0.958 0.006 265);
 
-  --surface-elevated: oklch(0.212 0.014 258);
-  --surface-inset: oklch(0.156 0.011 258);
+  --surface-elevated: oklch(0.218 0.02 265);
+  --surface-inset: oklch(0.158 0.015 265);
 
-  --primary: oklch(0.945 0.008 258);
-  --primary-foreground: oklch(0.152 0.012 258);
+  --primary: oklch(0.625 0.215 278);
+  --primary-foreground: oklch(0.99 0.004 278);
 
-  --secondary: oklch(0.228 0.014 258);
-  --secondary-foreground: oklch(0.925 0.008 258);
+  --secondary: oklch(0.238 0.02 265);
+  --secondary-foreground: oklch(0.935 0.008 265);
 
-  --muted: oklch(0.215 0.013 258);
-  --muted-foreground: oklch(0.715 0.013 258);
+  --muted: oklch(0.222 0.018 265);
+  --muted-foreground: oklch(0.725 0.016 265);
 
-  --accent: oklch(0.242 0.015 258);
-  --accent-foreground: oklch(0.96 0.006 258);
+  --accent: oklch(0.262 0.032 272);
+  --accent-foreground: oklch(0.965 0.008 265);
 
-  --border: oklch(0.305 0.014 258 / 0.6);
-  --input: oklch(0.29 0.014 258 / 0.72);
-  --ring: oklch(0.735 0.145 162);
+  --border: oklch(0.315 0.02 265 / 0.7);
+  --input: oklch(0.305 0.02 265 / 0.8);
+  --ring: oklch(0.665 0.2 278);
 
   /* Semantic Risk Tokens (WCAG 2.2 AA verified on dark obsidian) */
-  --risk-safe: oklch(0.745 0.152 160);
+  --risk-safe: oklch(0.755 0.152 160);
   --risk-safe-surface: oklch(0.225 0.048 160);
   --risk-safe-border: oklch(0.46 0.105 160 / 0.55);
 
-  --risk-caution: oklch(0.805 0.148 78);
-  --risk-caution-surface: oklch(0.235 0.048 78);
+  --risk-caution: oklch(0.815 0.148 78);
+  --risk-caution-surface: oklch(0.238 0.048 78);
   --risk-caution-border: oklch(0.54 0.115 78 / 0.55);
 
-  --risk-danger: oklch(0.665 0.205 24);
-  --risk-danger-solid: oklch(0.525 0.205 24);
-  --risk-danger-solid-hover: oklch(0.575 0.215 24);
-  --risk-danger-surface: oklch(0.225 0.058 24);
+  --risk-danger: oklch(0.695 0.205 24);
+  --risk-danger-solid: oklch(0.545 0.205 24);
+  --risk-danger-solid-hover: oklch(0.595 0.215 24);
+  --risk-danger-surface: oklch(0.228 0.058 24);
   --risk-danger-border: oklch(0.52 0.155 24 / 0.65);
 
-  --destructive: oklch(0.525 0.205 24);
+  --destructive: oklch(0.545 0.205 24);
   --destructive-foreground: oklch(0.98 0.005 24);
-
-  --radius: 0.75rem;
 }
 
 @theme inline {
@@ -113,11 +162,15 @@
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
     background-color: var(--background);
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
@@ -251,4 +304,3 @@
 .hd-float-delayed {
   animation: hd-float-gentle 6.5s ease-in-out 1.2s infinite;
 }
-

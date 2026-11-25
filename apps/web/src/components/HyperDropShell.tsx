@@ -2,11 +2,12 @@
 
 import * as React from 'react';
 import {
-  RefreshCw,
+  LayoutDashboard,
+  Moon,
   ShieldAlert,
-  ShieldCheck,
   SlidersHorizontal,
-  TrendingUp,
+  Sparkles,
+  Sun,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -20,14 +21,16 @@ import {
   type TransactionProposal,
   type YieldGuardPolicy,
 } from '../../../../packages/agent-core/src/types';
+import { computeDashboardSummary } from '../lib/dashboard-metrics';
 import {
   atomicStroopsToUsdcNumber,
   cn,
   formatBpsAsPercent,
-  formatDecimalWithCommas,
 } from '../lib/utils';
 import { ChatCopilot } from './ChatCopilot';
+import { DashboardOverview } from './DashboardOverview';
 import { GuardrailDrawer } from './GuardrailDrawer';
+import { HyperDropLogoMark } from './LandingVisuals';
 import {
   PREVIEW_TESTNET_ADDRESS,
   WalletConnectionControl,
@@ -36,7 +39,6 @@ import {
 } from './WalletProvider';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { Separator } from './ui/separator';
 import { Toaster } from './ui/sonner';
 import { TooltipProvider } from './ui/tooltip';
 
@@ -64,18 +66,6 @@ const FALLBACK_POLICY: YieldGuardPolicy = {
   isPaused: false,
 };
 
-function hfBandColor(band: PortfolioHealthSnapshot['riskBand']): string {
-  if (band === 'safe') return 'text-risk-safe';
-  if (band === 'caution') return 'text-risk-caution';
-  return 'text-risk-danger';
-}
-
-function hfBarColor(band: PortfolioHealthSnapshot['riskBand']): string {
-  if (band === 'safe') return 'bg-risk-safe';
-  if (band === 'caution') return 'bg-risk-caution';
-  return 'bg-risk-danger';
-}
-
 export interface HyperDropShellProps {
   readonly onNavigateHome?: () => void;
   readonly hideToaster?: boolean;
@@ -96,6 +86,23 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
   const [messages, setMessages] = React.useState<CopilotMessage[]>([]);
   const [isStreaming, setIsStreaming] = React.useState(false);
   const [isSimulatingAction, setIsSimulatingAction] = React.useState(false);
+
+  const [mobileTab, setMobileTab] = React.useState<'overview' | 'copilot'>('overview');
+  const [isDark, setIsDark] = React.useState(false);
+
+  // Sync optional Dark Mode toggle cleanly on documentElement
+  React.useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    return () => {
+      root.classList.remove('dark');
+    };
+  }, [isDark]);
 
   const loadPortfolio = React.useCallback(
     async (customPolicy?: YieldGuardPolicy, customPositions?: readonly BlendPosition[]) => {
@@ -144,6 +151,11 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
     void loadPortfolio();
   }, [loadPortfolio]);
 
+  const summary = React.useMemo(
+    () => computeDashboardSummary(snapshot, policy, recommendedRepayUsdc),
+    [snapshot, policy, recommendedRepayUsdc],
+  );
+
   const handleQuickSimulate = React.useCallback(
     async (params: {
       readonly actionType: 'repay_debt' | 'rebalance_vault';
@@ -151,6 +163,7 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
       readonly targetProtocol: 'blend' | 'defindex';
       readonly userLabel: string;
     }) => {
+      setMobileTab('copilot');
       setIsSimulatingAction(true);
       const userMsgId = `usr_${Date.now()}`;
       const assistantMsgId = `ast_${Date.now() + 1}`;
@@ -223,7 +236,7 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
                       id: traceId,
                       toolName: 'simulate_rebalance_or_repay',
                       status: 'completed',
-                      summary: `${payload.title} · HF ${payload.healthFactor.beforeFormatted}x → ${payload.healthFactor.afterFormatted}x · Guard ${payload.guardrail.status}`,
+                      summary: `${payload.title} · HF ${payload.healthFactor.beforeFormatted}x → ${payload.healthFactor.afterFormatted}x`,
                     },
                   ],
                 }
@@ -259,6 +272,7 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
   );
 
   const handleQuickCompareYields = React.useCallback(async () => {
+    setMobileTab('copilot');
     setIsSimulatingAction(true);
     const userMsgId = `usr_${Date.now()}`;
     const assistantMsgId = `ast_${Date.now() + 1}`;
@@ -306,7 +320,7 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
 
       const lines = data.yields.quotes.map((q) => {
         const allowText = q.allowlistedInGuard ? 'Allowlisted' : 'Not allowlisted';
-        return `• ${q.vaultName}: ${formatBpsAsPercent(q.netApyBps)} net APY (${formatBpsAsPercent(q.netApyDeltaBps, true)} vs Blend supply · Soroban fee ${q.estimatedSorobanFeeXlm} XLM / $${q.estimatedSorobanFeeUsd} · ${allowText})`;
+        return `• ${q.vaultName}: ${formatBpsAsPercent(q.netApyBps)} net APY (${formatBpsAsPercent(q.netApyDeltaBps, true)} vs Blend · Fee ${q.estimatedSorobanFeeXlm} XLM · ${allowText})`;
       });
 
       setMessages((prev) =>
@@ -314,7 +328,7 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
           m.id === assistantMsgId
             ? {
                 ...m,
-                content: `Evaluated DeFindex Testnet USDC vaults for 1,000.00 USDC over a 90-day horizon against Blend baseline supply (${formatBpsAsPercent(data.yields.currentBlendSupplyApyBps)}):\n\n${lines.join('\n')}`,
+                content: `Evaluated DeFindex Testnet USDC vaults for 1,000.00 USDC against Blend supply (${formatBpsAsPercent(data.yields.currentBlendSupplyApyBps)}):\n\n${lines.join('\n')}`,
                 toolTraces: [
                   {
                     id: traceId,
@@ -509,393 +523,201 @@ function HyperDropWorkspace({ onNavigateHome, hideToaster }: HyperDropShellProps
     [loadPortfolio, policy, snapshot],
   );
 
-  const hfGaugePct = snapshot
-    ? Math.max(
-        0,
-        Math.min(100, ((snapshot.healthFactorBps - 10_000) / 15_000) * 100),
-      )
-    : 0;
-
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
-      {/* Strict 3-Zone Top Bar */}
-      <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 sm:px-6 backdrop-blur-sm">
-        {/* Zone 1: Single-line Brand Wordmark */}
+      {/* Clean Single-Row Top Bar Matching Landing Page */}
+      <header className="sticky top-0 z-30 flex h-15 sm:h-16 shrink-0 items-center justify-between gap-2 sm:gap-4 border-b border-border bg-card/95 px-3 sm:px-6 backdrop-blur-md">
+        {/* Zone 1: Unified HyperDrop Logo + Wordmark */}
         {onNavigateHome ? (
           <button
             type="button"
             onClick={onNavigateHome}
             aria-label="HyperDrop — return to landing page"
-            className="text-base font-semibold tracking-tight text-foreground whitespace-nowrap shrink-0 cursor-pointer hover:text-foreground/85 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-[6px]"
+            className="inline-flex items-center gap-2 text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap shrink-0 cursor-pointer hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
           >
-            HyperDrop
+            <HyperDropLogoMark className="size-7 sm:size-8" />
+            <span>HyperDrop</span>
           </button>
         ) : (
           <a
             href="#workspace"
-            className="text-base font-semibold tracking-tight text-foreground whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-[6px]"
+            className="inline-flex items-center gap-2 text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
           >
-            HyperDrop
+            <HyperDropLogoMark className="size-7 sm:size-8" />
+            <span>HyperDrop</span>
           </a>
         )}
 
-        {/* Zone 2: Quiet unboxed context metadata */}
-        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap">
+        {/* Zone 2: Quiet Unboxed Network Context */}
+        <div className="hidden lg:flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap">
           <span>Stellar Testnet</span>
           <span aria-hidden="true">·</span>
-          <span>Blend</span>
+          <span>Blend Lending</span>
           <span aria-hidden="true">·</span>
-          <span>DeFindex</span>
+          <span>DeFindex Vaults</span>
           <span aria-hidden="true">·</span>
-          <span>Soroswap</span>
+          <span>YieldGuard Soroban</span>
         </div>
 
-        {/* Zone 3: Guardrails trigger + Wallet control */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        {/* Zone 3: Theme Switch + Guardrails + Wallet Control */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsDark((prev) => !prev)}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="inline-flex size-9 sm:size-10 items-center justify-center rounded-xl border border-border bg-surface-inset text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
+
           <Button
             variant={policy.isPaused ? 'destructive' : 'outline'}
             size="sm"
             onClick={() => setDrawerOpen(true)}
-            className={cn(!policy.isPaused && 'bg-card')}
+            aria-label={policy.isPaused ? 'Guard Frozen — open guardrails' : 'Open Guardrails'}
+            className={cn(
+              'min-h-9 h-9 px-2.5 sm:min-h-10 sm:px-3.5',
+              !policy.isPaused && 'bg-card',
+            )}
           >
             {policy.isPaused ? (
               <ShieldAlert className="size-4" />
             ) : (
               <SlidersHorizontal className="size-4" />
             )}
-            <span>{policy.isPaused ? 'Guard Frozen' : 'Guardrails'}</span>
+            <span className="hidden sm:inline">
+              {policy.isPaused ? 'Guard Frozen' : 'Guardrails'}
+            </span>
           </Button>
+
           <WalletConnectionControl />
         </div>
       </header>
 
-      {/* Main Split Workspace */}
+      {/* Mobile View Switcher (< lg only, compact and non-sticky to respect 15% sticky cap) */}
+      <div className="flex lg:hidden shrink-0 items-center justify-between gap-2 border-b border-border bg-card px-4 py-2">
+        <div
+          role="tablist"
+          aria-label="Workspace view"
+          className="grid w-full grid-cols-2 gap-1 rounded-xl bg-surface-inset p-1"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'overview'}
+            onClick={() => setMobileTab('overview')}
+            className={cn(
+              'inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer',
+              mobileTab === 'overview'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <LayoutDashboard className="size-3.5" />
+            <span>Overview</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileTab === 'copilot'}
+            onClick={() => setMobileTab('copilot')}
+            className={cn(
+              'inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer',
+              mobileTab === 'copilot'
+                ? 'bg-card text-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Sparkles className="size-3.5" />
+            <span>AI Copilot</span>
+            {messages.length > 0 && (
+              <span className="tabular-financial text-[11px] text-primary">
+                ({messages.filter((m) => m.role === 'assistant').length})
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Main Overview-First + Docked Copilot Split Workspace */}
       <main
         id="workspace"
-        className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[312px_1fr] overflow-hidden"
+        className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_410px] xl:grid-cols-[minmax(0,1fr)_450px] overflow-hidden"
       >
-        {/* Compact Non-Sticky Mobile Portfolio Strip */}
-        {snapshot && (
-          <div className="flex lg:hidden shrink-0 items-center justify-between gap-3 border-b border-border bg-surface-inset px-4 py-2 text-xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-muted-foreground">Blend HF</span>
-              <span
-                className={cn(
-                  'tabular-financial font-semibold',
-                  hfBandColor(snapshot.riskBand),
-                )}
-              >
-                {snapshot.healthFactorFormatted}x
-              </span>
-              <span className="text-muted-foreground capitalize">({snapshot.riskBand})</span>
-            </div>
-            <span className="tabular-financial text-muted-foreground shrink-0">
-              -{snapshot.liquidationPriceDropPct}% drop
-            </span>
-          </div>
-        )}
-
-        {/* Left Sidebar: Blend Risk Ledger & Policy Summary */}
-        <aside
-          aria-label="Blend Portfolio and Guardrail Summary"
-          className="hidden lg:flex min-h-0 flex-col border-r border-border bg-surface-inset/50"
+        {/* Left/Center Main Column: Live Consumer-Fintech Overview Dashboard */}
+        <section
+          aria-label="Portfolio Overview Dashboard"
+          className={cn(
+            'min-h-0 flex-1 overflow-hidden bg-background',
+            mobileTab === 'copilot' ? 'hidden lg:block' : 'block',
+          )}
         >
-          <ScrollArea className="flex-1">
-            <div className="flex flex-col gap-4 p-4">
-              {/* Health Factor Primary Readout */}
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xs font-medium text-muted-foreground">
-                    Blend Health Factor
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => void loadPortfolio(policy, snapshot?.positions)}
-                    disabled={isLoadingPortfolio}
-                    aria-label="Refresh Blend portfolio health"
-                    className="inline-flex size-8 items-center justify-center rounded-[8px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
-                  >
-                    <RefreshCw
-                      className={cn('size-3.5', isLoadingPortfolio && 'animate-spin')}
-                    />
-                  </button>
-                </div>
-
-                {snapshot ? (
-                  <>
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span
-                        className={cn(
-                          'tabular-financial text-3xl font-semibold tracking-tight',
-                          hfBandColor(snapshot.riskBand),
-                        )}
-                      >
-                        {snapshot.healthFactorFormatted}x
-                      </span>
-                      <span
-                        className={cn(
-                          'text-xs font-medium capitalize',
-                          hfBandColor(snapshot.riskBand),
-                        )}
-                      >
-                        {snapshot.riskBand} zone
-                      </span>
-                    </div>
-
-                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className={cn(
-                          'h-full rounded-full transition-all duration-300',
-                          hfBarColor(snapshot.riskBand),
-                        )}
-                        style={{ width: `${hfGaugePct}%` }}
-                      />
-                      <div
-                        aria-hidden="true"
-                        className="absolute inset-y-0 w-px bg-background/80"
-                        style={{ left: '16.67%' }}
-                      />
-                      <div
-                        aria-hidden="true"
-                        className="absolute inset-y-0 w-px bg-background/80"
-                        style={{ left: '33.33%' }}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Liquidation buffer</span>
-                      <span className="tabular-financial font-medium text-foreground">
-                        -{snapshot.liquidationPriceDropPct}% drop
-                      </span>
-                    </div>
-
-                    {Number(recommendedRepayUsdc) > 0 && (
-                      <p className="text-xs leading-relaxed text-muted-foreground">
-                        Repaying{' '}
-                        <span className="tabular-financial font-medium text-foreground">
-                          {recommendedRepayUsdc} USDC
-                        </span>{' '}
-                        lifts Health Factor cleanly above the 1.60x target buffer.
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <div className="h-20 animate-pulse rounded-[10px] bg-secondary/60" />
-                )}
-              </div>
-
-              <Separator />
-
-              {/* Collateral vs Debt */}
-              {snapshot && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Collateral</div>
-                    <div className="mt-0.5 tabular-financial text-base font-semibold tracking-tight text-foreground">
-                      ${formatDecimalWithCommas(snapshot.totalCollateralUsd)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">Borrowed Debt</div>
-                    <div className="mt-0.5 tabular-financial text-base font-semibold tracking-tight text-foreground">
-                      ${formatDecimalWithCommas(snapshot.totalDebtUsd)}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Positions Ledger */}
-              {snapshot && (
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs font-medium text-muted-foreground">
-                    Active Blend Positions
-                  </div>
-                  <div className="divide-y divide-border rounded-[12px] border border-border bg-card">
-                    {snapshot.positions.map((pos) => {
-                      const isDebt = Number(pos.debtUsd) > 0;
-                      return (
-                        <div
-                          key={`${pos.poolId}-${pos.asset.code}`}
-                          className="flex items-center justify-between gap-2 px-3 py-2"
-                        >
-                          <div>
-                            <div className="text-xs font-medium text-foreground">
-                              {pos.asset.symbol}{' '}
-                              <span className="font-normal text-muted-foreground">
-                                {isDebt ? 'Debt' : 'Collateral'}
-                              </span>
-                            </div>
-                            <div className="mt-0.5 tabular-financial text-[11px] text-muted-foreground">
-                              {isDebt
-                                ? `${formatBpsAsPercent(pos.borrowApyBps)} borrow APY`
-                                : `${formatBpsAsPercent(pos.supplyApyBps)} supply APY`}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="tabular-financial text-xs font-medium text-foreground">
-                              ${formatDecimalWithCommas(isDebt ? pos.debtUsd : pos.collateralUsd)}
-                            </div>
-                            <div className="tabular-financial text-[11px] text-muted-foreground">
-                              {formatDecimalWithCommas(
-                                isDebt ? pos.debtFormatted : pos.collateralFormatted,
-                              )}{' '}
-                              {pos.asset.symbol}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <Separator />
-
-              {/* YieldGuardPolicy Summary */}
-              <div className="flex flex-col gap-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    YieldGuardPolicy
-                  </span>
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1 text-xs font-medium',
-                      policy.isPaused ? 'text-risk-danger' : 'text-risk-safe',
-                    )}
-                  >
-                    {policy.isPaused ? (
-                      <>
-                        <ShieldAlert className="size-3.5" />
-                        <span>Frozen</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="size-3.5" />
-                        <span>Active</span>
-                      </>
-                    )}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Max Single Tx</span>
-                    <span className="tabular-financial text-foreground">
-                      ${atomicStroopsToUsdcNumber(policy.maxSingleTxAmount).toLocaleString()} USDC
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">24h Spend Cap</span>
-                    <span className="tabular-financial text-foreground">
-                      ${atomicStroopsToUsdcNumber(policy.spentInWindow).toFixed(0)} / $
-                      {atomicStroopsToUsdcNumber(policy.dailySpendLimit).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Min HF Floor</span>
-                    <span className="tabular-financial text-foreground">
-                      {(policy.minHealthFactorBps / 10_000).toFixed(2)}x
-                    </span>
-                  </div>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDrawerOpen(true)}
-                  className="mt-1 w-full bg-card"
-                >
-                  Configure Guardrails
-                </Button>
-              </div>
-
-              <Separator />
-
-              {/* Deterministic Direct Simulations */}
-              <div className="flex flex-col gap-2">
-                <div className="text-xs font-medium text-muted-foreground">
-                  Quick Soroban Simulations
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full justify-start"
-                  disabled={isSimulatingAction || isStreaming}
-                  onClick={() =>
-                    void handleQuickSimulate({
-                      actionType: 'repay_debt',
-                      amount: '500.00',
-                      targetProtocol: 'blend',
-                      userLabel: 'Simulate repaying 500 USDC on Blend to strengthen Health Factor.',
-                    })
-                  }
-                >
-                  <ShieldCheck className="size-3.5 text-risk-safe" />
-                  <span>Simulate Repay · 500 USDC</span>
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="w-full justify-start"
-                  disabled={isSimulatingAction || isStreaming}
-                  onClick={() =>
-                    void handleQuickSimulate({
-                      actionType: 'rebalance_vault',
-                      amount: '800.00',
-                      targetProtocol: 'defindex',
-                      userLabel:
-                        'Simulate rebalancing 800 USDC into the allowlisted DeFindex Auto-Compound Blend Vault.',
-                    })
-                  }
-                >
-                  <TrendingUp className="size-3.5 text-risk-safe" />
-                  <span>Simulate DeFindex · 800 USDC</span>
-                </Button>
-              </div>
-
-              {/* Best Allowlisted DeFindex Yield Reference */}
-              {yieldComparison && yieldComparison.quotes[0] && (
-                <div className="rounded-[12px] border border-border bg-card px-3.5 py-3 text-xs">
-                  <div className="flex items-center justify-between text-muted-foreground">
-                    <span>Top DeFindex Vault</span>
-                    <span className="tabular-financial font-medium text-risk-safe">
-                      {formatBpsAsPercent(yieldComparison.quotes[0].netApyDeltaBps, true)}
-                    </span>
-                  </div>
-                  <div className="mt-1 font-medium text-foreground">
-                    {yieldComparison.quotes[0].vaultName}
-                  </div>
-                  <div className="mt-1 tabular-financial text-[11px] text-muted-foreground">
-                    {formatBpsAsPercent(yieldComparison.quotes[0].netApyBps)} net APY · Fee $
-                    {yieldComparison.quotes[0].estimatedSorobanFeeUsd}
-                  </div>
-                </div>
-              )}
+          <ScrollArea className="h-full">
+            <div className="mx-auto w-full max-w-[960px]">
+              <DashboardOverview
+                snapshot={snapshot}
+                policy={policy}
+                yieldComparison={yieldComparison}
+                recommendedRepayUsdc={recommendedRepayUsdc}
+                isLoading={isLoadingPortfolio}
+                isBusy={isSimulatingAction || isStreaming}
+                onRefresh={() => void loadPortfolio(policy, snapshot?.positions)}
+                onSimulateRepay={(amount = '500.00') =>
+                  void handleQuickSimulate({
+                    actionType: 'repay_debt',
+                    amount,
+                    targetProtocol: 'blend',
+                    userLabel: `Simulate repaying ${amount} USDC on Blend to strengthen Health Factor.`,
+                  })
+                }
+                onSimulateDeFindex={(amount = '800.00', vaultName) =>
+                  void handleQuickSimulate({
+                    actionType: 'rebalance_vault',
+                    amount,
+                    targetProtocol: 'defindex',
+                    userLabel: vaultName
+                      ? `Simulate depositing ${amount} USDC into ${vaultName}.`
+                      : `Simulate rebalancing ${amount} USDC into the allowlisted DeFindex Auto-Compound Blend Vault.`,
+                  })
+                }
+                onCompareYields={() => void handleQuickCompareYields()}
+                onOpenGuardrails={() => setDrawerOpen(true)}
+              />
             </div>
           </ScrollArea>
-        </aside>
+        </section>
 
-        {/* Main Center Copilot Column */}
-        <section aria-label="HyperDrop AI Copilot" className="min-h-0 flex-1 overflow-hidden">
+        {/* Right Docked Column: AI Risk Copilot & Inline Simulated Previews */}
+        <aside
+          aria-label="HyperDrop AI Risk Copilot"
+          className={cn(
+            'min-h-0 flex-1 overflow-hidden lg:border-l border-border bg-card',
+            mobileTab === 'overview' ? 'hidden lg:flex lg:flex-col' : 'flex flex-col',
+          )}
+        >
           <ChatCopilot
             messages={messages}
             isStreaming={isStreaming}
             isSimulatingAction={isSimulatingAction}
             policyPaused={policy.isPaused}
+            insight={summary.insight}
             onSendPrompt={(text) => void handleSendPrompt(text)}
             onQuickSimulateRepay={() =>
               void handleQuickSimulate({
                 actionType: 'repay_debt',
                 amount: '500.00',
                 targetProtocol: 'blend',
-                userLabel: 'Simulate repaying 500 USDC on Blend to bring Health Factor above 1.50x.',
+                userLabel:
+                  'Simulate repaying 500 USDC on Blend to bring Health Factor above 1.50x.',
               })
             }
             onQuickCompareYields={() => void handleQuickCompareYields()}
             onOpenGuardrails={() => setDrawerOpen(true)}
+            onResetChat={() => setMessages([])}
             onProposalExecuted={handleProposalExecuted}
           />
-        </section>
+        </aside>
       </main>
 
       <GuardrailDrawer
